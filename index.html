@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>遠端監控與控制系統</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="navbar">
+    <button class="tab-btn" data-tab="about">關於我</button>
+    <button class="tab-btn" data-tab="control">遠端控制</button>
+    <button class="tab-btn" data-tab="monitor">遠端監控</button>
+    <button class="tab-btn" data-tab="health">健康監測</button>
+  </div>
+
+  <!-- 關於我 -->
+  <div class="window active" id="about">
+    <h2>👤 關於我</h2>
+    <div class="about-photo">
+      <img src="images/me.jpg" alt="我的大頭貼">
+    </div>
+    <p>你好！這是我的個人介紹頁面，整合了藍牙控制、血壓監測與遠端影像監控功能。</p>
+  </div>
+
+  <!-- 遠端控制 -->
+  <div class="window" id="control">
+    <h2>💡 遠端控制</h2>
+    <p>透過 HM-10 藍牙模組連線並控制 LED 燈開關。</p>
+    <button id="ble-connect">🔗 連線 HM-10</button>
+    <button id="light-on">💡 開燈</button>
+    <button id="light-off">🌑 關燈</button>
+    <p id="ble-status">尚未連線</p>
+  </div>
+
+  <!-- 遠端監控 -->
+  <div class="window" id="monitor">
+    <h2>📷 遠端監控</h2>
+    <p>開啟本欄位時，系統會自動嘗試連線至 ESP32-CAM 並顯示即時影像。</p>
+    <div id="camera-container">
+      <img id="esp32-stream" src="" alt="影像載入中..." style="max-width:100%; border-radius:12px;">
+      <p id="cam-status">📡 等待連線...</p>
+    </div>
+  </div>
+
+  <!-- 健康監測 -->
+  <div class="window" id="health">
+    <h2>🩺 健康監測</h2>
+    <p>透過藍牙血壓計量測血壓與心率。</p>
+    <button id="bp-connect">🔗 連線血壓計</button>
+    <div id="bp-data">
+      <p>收縮壓 (SYS)：<span id="sys">--</span> mmHg</p>
+      <p>舒張壓 (DIA)：<span id="dia">--</span> mmHg</p>
+      <p>心率 (HR)：<span id="hr">--</span> bpm</p>
+    </div>
+    <p id="bp-status">尚未連線</p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
