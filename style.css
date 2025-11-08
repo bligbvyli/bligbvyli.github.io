@@ -141,3 +141,12 @@ ul li::before {
   width: 1em;
   margin-left: -1em;
 }
+#camera-container {
+  margin-top: 20px;
+  text-align: center;
+}
+
+#cam-status {
+  margin-top: 10px;
+  font-weight: 500;
+}

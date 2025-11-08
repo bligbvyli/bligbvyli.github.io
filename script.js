@@ -47,3 +47,22 @@ analyzeBtn.addEventListener("click", () => {
     bpValue.style.color = systolic > 130 ? "red" : "green";
   }, 1500);
 });
+// ESP32-CAM 影像狀態檢查
+const camImg = document.getElementById("esp32-stream");
+const camStatus = document.getElementById("cam-status");
+
+function checkCamera() {
+  fetch(camImg.src, { method: "HEAD" })
+    .then(() => {
+      camStatus.textContent = "✅ 鏡頭已連線";
+      camStatus.style.color = "green";
+    })
+    .catch(() => {
+      camStatus.textContent = "⚠️ 鏡頭未連線，請確認 ESP32-CAM 是否開啟";
+      camStatus.style.color = "red";
+    });
+}
+
+// 每 5 秒檢查一次
+setInterval(checkCamera, 5000);
+checkCamera();
