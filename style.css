@@ -1,0 +1,85 @@
+body {
+  font-family: "Noto Sans TC", sans-serif;
+  margin: 0;
+  background: #f6f6f6;
+  color: #333;
+}
+
+.navbar {
+  display: flex;
+  background: #1e1e2f;
+  justify-content: center;
+  padding: 10px;
+}
+
+.tab-btn {
+  background: #333;
+  border: none;
+  color: white;
+  margin: 0 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.tab-btn:hover {
+  background: #555;
+}
+
+.window {
+  display: none;
+  padding: 20px;
+  max-width: 600px;
+  margin: 20px auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.window.active {
+  display: block;
+}
+
+.about-photo img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  margin: 10px auto;
+  box-shadow: 0 0 8px rgba(0,0,0,0.3);
+}
+
+button {
+  margin: 5px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  background: #0078ff;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #005fcc;
+}
+
+#camera-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+#cam-status {
+  margin-top: 10px;
+  font-weight: bold;
+}
+#bp-data {
+  margin-top: 20px;
+  font-size: 1.1rem;
+  line-height: 1.8;
+}
+
+#bp-status {
+  margin-top: 10px;
+  font-weight: bold;
+}
