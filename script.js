@@ -48,7 +48,7 @@ document.getElementById("light-off").addEventListener("click", async () => {
 function startCameraStream() {
   const camImg = document.getElementById("esp32-stream");
   const camStatus = document.getElementById("cam-status");
-  const camURL = "http://192.168.4.1/stream";
+  const camURL = "http://10.139.23.104/"; // ← 已修改成新網址
 
   camImg.src = camURL;
   camStatus.textContent = "📡 嘗試連線中...";
