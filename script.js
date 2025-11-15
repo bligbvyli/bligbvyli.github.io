@@ -48,7 +48,8 @@ document.getElementById("light-off").addEventListener("click", async () => {
 function startCameraStream() {
   const camImg = document.getElementById("esp32-stream");
   const camStatus = document.getElementById("cam-status");
-  const camURL = "http://10.139.23.104/"; // ← 已修改成新網址
+  const camURL = "http://10.139.23.104/stream";
+
 
   camImg.src = camURL;
   camStatus.textContent = "📡 嘗試連線中...";
@@ -99,4 +100,12 @@ function handleBPData(event) {
   document.getElementById("sys").textContent = sys;
   document.getElementById("dia").textContent = dia;
   document.getElementById("hr").textContent = hr;
+}
+function startStream() {
+  const esp32Url = "http://10.139.23.104/stream"; // ★★★ YOUR ESP32 地址 ★★★
+
+  const img = document.getElementById("esp32-stream");
+  img.src = esp32Url;
+
+  alert("開始串流影像！");
 }

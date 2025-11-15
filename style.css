@@ -83,3 +83,19 @@ button:hover {
   margin-top: 10px;
   font-weight: bold;
 }
+#monitor {
+  text-align: center;
+}
+
+.monitor-box {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  margin: 0 auto 20px;
+}
+
+#esp32-stream {
+  width: 100%;
+  border-radius: 8px;
+  background: #000;
+}
