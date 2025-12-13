@@ -1,58 +1,54 @@
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>遠端監控與健康系統</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.12.0/dist/tf.min.js"></script>
+  <title>遠端監控與控制系統</title>
+  <link rel="stylesheet" href="style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+  <script src="script.js" defer></script>
 </head>
 <body>
   <div class="navbar">
     <button class="tab-btn" data-tab="about">關於我</button>
+    <button class="tab-btn" data-tab="control">遠端控制</button>
     <button class="tab-btn" data-tab="monitor">遠端監控</button>
     <button class="tab-btn" data-tab="health">健康監測</button>
   </div>
 
-  <div id="about" class="window active">
+  <div class="window active" id="about">
     <h2>👤 關於我</h2>
-    <div class="about-photo">
-      <img src="images/me.jpg" alt="我的大頭貼" />
-    </div>
-    <p>這是一個整合健康 AI 模型、ESP32 串流與藍牙控制的系統。</p>
+    <p>這是我的網站，整合了遠端控制、影像監控與血壓健康檢測。</p>
   </div>
 
-  <div id="monitor" class="window">
+  <div class="window" id="control">
+    <h2>💡 遠端控制</h2>
+    <button id="ble-connect">🔗 連線 HM-10</button>
+    <button id="light-on">💡 開燈</button>
+    <button id="light-off">🌑 關燈</button>
+    <p id="ble-status">尚未連線</p>
+  </div>
+
+  <div class="window" id="monitor">
     <h2>📷 遠端監控</h2>
-    <p>ESP32-CAM 連線畫面如下：</p>
-    <div class="monitor-box">
-      <img id="esp32-stream" src="" alt="請點擊按鈕載入影像" />
-    </div>
-    <p id="cam-status">尚未連線</p>
+    <p>請確認 ESP32-CAM 已啟動。</p>
+    <img id="esp32-stream" src="" alt="點擊下方按鈕開始串流"/>
+    <p id="cam-status">尚未開始串流</p>
     <button onclick="startCameraStream()">開始影像串流</button>
   </div>
 
-  <div id="health" class="window">
-    <h2>AI 血壓健康分析</h2>
-    <p>輸入您的血壓數值，讓模型即時分析是否健康：</p>
+  <div class="window" id="health">
+    <h2>🩺 血壓分析</h2>
+    <p>請輸入您的血壓數值進行分析：</p>
     <input id="input-sys" type="number" placeholder="收縮壓 (SYS)">
     <input id="input-dia" type="number" placeholder="舒張壓 (DIA)">
-    <br>
     <button id="train-btn">🧠 訓練模型</button>
-    <button id="predict-btn" disabled>🔍 開始分析</button>
+    <button id="predict-btn" disabled>🔍 分析</button>
     <p id="train-status">尚未訓練模型</p>
-    <div id="result-area" style="display:none; margin-top:20px;">
-      <p>風險評估分數：<span id="risk-score" style="font-weight:bold;"></span></p>
+    <div id="result-area" style="display:none; margin-top:15px;">
+      <p>風險評估分數：<span id="risk-score"></span></p>
       <p id="health-advice"></p>
     </div>
-    <div style="margin-top:10px;">
-      <p>快速測試：</p>
-      <button class="test-preset" data-sys="115" data-dia="72">正常案例</button>
-      <button class="test-preset" data-sys="140" data-dia="90">高血壓案例</button>
-    </div>
   </div>
-
-  <script src="script.js"></script>
 </body>
 </html>
