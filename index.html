@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>遠端監控與控制系統</title>
-  <link rel="stylesheet" href="style.css"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 血壓健康監測平台</title>
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
-  <script src="script.js" defer></script>
 </head>
 <body>
   <div class="navbar">
@@ -16,83 +15,59 @@
     <button class="tab-btn" data-tab="health">健康監測</button>
   </div>
 
+  <!-- 關於我 -->
   <div class="window active" id="about">
     <h2>👤 關於我</h2>
-    <p>這是我的網站，整合了遠端控制、影像監控與血壓健康檢測。</p>
+    <div class="about-photo">
+      <img src="images/me.jpg" alt="我的大頭貼">
+    </div>
+    <p>你好！這是我的個人專案網站，整合了藍牙控制、血壓監測與遠端影像監控功能。</p>
   </div>
 
+  <!-- 遠端控制 -->
   <div class="window" id="control">
     <h2>💡 遠端控制</h2>
+    <p>透過 HM-10 藍牙模組連線並控制 LED 燈開關。</p>
     <button id="ble-connect">🔗 連線 HM-10</button>
     <button id="light-on">💡 開燈</button>
     <button id="light-off">🌑 關燈</button>
     <p id="ble-status">尚未連線</p>
   </div>
 
+  <!-- 遠端監控 -->
   <div class="window" id="monitor">
     <h2>📷 遠端監控</h2>
-    <p>請確認 ESP32-CAM 已啟動。</p>
-    <img id="esp32-stream" src="" alt="點擊下方按鈕開始串流"/>
-    <p id="cam-status">尚未開始串流</p>
+    <p>請確認您的 ESP32-CAM 已連線並啟動。</p>
+    <div class="monitor-box">
+      <img id="esp32-stream" src="" alt="點擊下方按鈕開始串流">
+    </div>
+    <p id="cam-status"></p>
     <button onclick="startCameraStream()">開始影像串流</button>
   </div>
 
-  <div id="ai-bp-section" class="window">
-  <h2>AI 血壓健康分析</h2>
-  <p>輸入您的血壓數值，讓模型即時分析是否健康：</p>
-  <input id="input-sys" type="number" placeholder="收縮壓 (SYS)">
-  <input id="input-dia" type="number" placeholder="舒張壓 (DIA)">
-  <br>
-  <button id="predict-btn">🔍 開始分析</button>
-  <div id="result-area" style="display:none; margin-top:20px;">
-    <p>風險評估分數：<span id="risk-score" style="font-weight:bold;"></span></p>
-    <p id="health-advice"></p>
+  <!-- 健康監測 -->
+  <div id="health" class="window">
+    <h2>AI 血壓健康分析</h2>
+    <p>輸入您的血壓數值，讓模型即時分析是否健康：</p>
+    <input id="input-sys" type="number" placeholder="收縮壓 (SYS)">
+    <input id="input-dia" type="number" placeholder="舒張壓 (DIA)">
+    <br>
+    <button id="train-btn">🧠 訓練模型</button>
+    <button id="predict-btn" disabled>🔍 開始分析</button>
+    <p id="train-status">尚未訓練模型</p>
+
+    <div id="result-area" style="display:none; margin-top:20px;">
+      <p>風險評估分數：<span id="risk-score" style="font-weight:bold;"></span></p>
+      <p id="health-advice"></p>
+    </div>
+
+    <div style="margin-top:10px;">
+      <p>快速測試：</p>
+      <button class="test-preset" data-sys="115" data-dia="72">正常案例</button>
+      <button class="test-preset" data-sys="140" data-dia="90">高血壓案例</button>
+    </div>
   </div>
-  <div style="margin-top:10px;">
-    <p>快速測試：</p>
-    <button class="test-preset" data-sys="115" data-dia="72">正常案例</button>
-    <button class="test-preset" data-sys="140" data-dia="90">高血壓案例</button>
-  </div>
-</div>
 
-<script>
-  document.getElementById('predict-btn').onclick = function() {
-    const sys = parseFloat(document.getElementById('input-sys').value);
-    const dia = parseFloat(document.getElementById('input-dia').value);
-
-    if (!sys || !dia) return alert("請輸入完整的血壓數值！");
-
-    // 線性回歸模型：risk = 0.005 * sys + 0.00833 * dia - 0.95
-    const risk = 0.005 * sys + 0.00833 * dia - 0.95;
-    const riskScore = Math.max(0, Math.min(1, risk));
-
-    const resultArea = document.getElementById("result-area");
-    const riskText = document.getElementById("risk-score");
-    const adviceText = document.getElementById("health-advice");
-
-    resultArea.style.display = "block";
-    riskText.textContent = riskScore.toFixed(2);
-
-    if (riskScore < 0.45) {
-      riskText.style.color = "green";
-      adviceText.textContent = "✅ 數值正常。您的血壓符合健康標準。";
-      adviceText.style.color = "green";
-    } else if (riskScore < 0.75) {
-      riskText.style.color = "orange";
-      adviceText.textContent = "⚠️ 數值偏高。建議注意飲食與作息。";
-      adviceText.style.color = "orange";
-    } else {
-      riskText.style.color = "red";
-      adviceText.textContent = "🚨 數據異常！建議儘快就醫檢查。";
-      adviceText.style.color = "red";
-    }
-  };
-
-  document.querySelectorAll('.test-preset').forEach(btn => {
-    btn.onclick = () => {
-      document.getElementById('input-sys').value = btn.dataset.sys;
-      document.getElementById('input-dia').value = btn.dataset.dia;
-    };
-  });
-</script>
-
+  <script src="script.js"></script>
+</body>
+</html>
