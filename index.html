@@ -2,71 +2,72 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>遠端監控與控制系統</title>
+  <title>AI 健康監測平台</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.18.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
 </head>
 <body>
   <div class="navbar">
-    <button class="tab-btn" data-tab="about">關於我</button>
-    <button class="tab-btn" data-tab="control">遠端控制</button>
-    <button class="tab-btn" data-tab="monitor">遠端監控</button>
-    <button class="tab-btn" data-tab="health">健康監測</button>
+    <button class="tab-btn" data-tab="about">關於</button>
+    <button class="tab-btn" data-tab="monitor">監控</button>
+    <button class="tab-btn" data-tab="ai">AI 分析</button>
   </div>
 
-  <!-- 關於我 -->
+  <!-- 關於 -->
   <div class="window active" id="about">
-    <h2>👤 關於我</h2>
+    <h2>關於本系統</h2>
     <div class="about-photo">
-      <img src="images/me.jpg" alt="我的大頭貼" />
+      <img src="https://i.imgur.com/A6zXwWc.jpg" alt="AI Logo" />
     </div>
-    <p>你好！這是我的個人介紹頁面，整合了藍牙控制、血壓監測與遠端影像監控功能。</p>
+    <p>這是一個結合 AI、ESP32-CAM 與藍牙感測器的智慧健康平台。</p>
   </div>
 
-  <!-- 遠端控制 -->
-  <div class="window" id="control">
-    <h2>💡 遠端控制</h2>
-    <p>透過 HM-10 藍牙模組連線並控制 LED 燈開關。</p>
+  <!-- 監控 -->
+  <div class="window" id="monitor">
+    <h2>鏡頭影像串流</h2>
+    <div class="monitor-box">
+      <img id="esp32-stream" src="" alt="Camera Stream" />
+    </div>
+    <div id="cam-status">尚未啟動串流</div>
+
+    <h2 style="margin-top:40px;">藍牙燈控 (HM-10)</h2>
     <button id="ble-connect">🔗 連線 HM-10</button>
     <button id="light-on">💡 開燈</button>
     <button id="light-off">🌑 關燈</button>
-    <p id="ble-status">尚未連線</p>
-  </div>
+    <div id="ble-status"></div>
 
-  <!-- 遠端監控 -->
-  <div class="window" id="monitor">
-    <h2>📷 遠端監控</h2>
-    <p>請確認你的 ESP32-CAM 已連線並啟動。</p>
-    <div class="monitor-box">
-      <img id="esp32-stream" src="" alt="點擊下方按鈕開始串流">
-      <p id="cam-status">尚未啟動</p>
+    <h2 style="margin-top:40px;">藍牙血壓計</h2>
+    <button id="bp-connect">🩺 連線血壓計</button>
+    <div id="bp-status"></div>
+    <div id="bp-data">
+      <p>收縮壓 (SYS): <span id="sys">-</span></p>
+      <p>舒張壓 (DIA): <span id="dia">-</span></p>
+      <p>心跳 (HR): <span id="hr">-</span></p>
     </div>
-    <button onclick="startCameraStream()">開始影像串流</button>
   </div>
 
-  <!-- 健康監測 -->
-  <div id="health" class="window">
-    <h2>AI 血壓健康分析</h2>
-    <p>輸入您的血壓數值，讓模型即時分析是否健康：</p>
-    <input id="input-sys" type="number" placeholder="收縮壓 (SYS)">
-    <input id="input-dia" type="number" placeholder="舒張壓 (DIA)">
-    <br>
-    <button id="train-btn">🧠 訓練模型</button>
-    <button id="predict-btn" disabled>🔍 開始分析</button>
-    <p id="train-status">尚未訓練模型</p>
+  <!-- AI 分析 -->
+  <div class="window" id="ai">
+    <h2>AI 血壓分析系統</h2>
+    <button id="train-btn">🧠 建立健康模型</button>
+    <div id="train-status" style="margin:10px 0; font-weight:bold;"></div>
+
+    <h3>輸入血壓數值</h3>
+    <input type="number" id="input-sys" placeholder="收縮壓 SYS" />
+    <input type="number" id="input-dia" placeholder="舒張壓 DIA" />
+    <button id="predict-btn" disabled>🔍 分析健康風險</button>
+
+    <h4>快速測試</h4>
+    <button class="test-preset" data-sys="115" data-dia="72">🟢 115/72</button>
+    <button class="test-preset" data-sys="135" data-dia="90">🟠 135/90</button>
+    <button class="test-preset" data-sys="160" data-dia="100">🔴 160/100</button>
+
     <div id="result-area" style="display:none; margin-top:20px;">
-      <p>風險評估分數：<span id="risk-score" style="font-weight:bold;"></span></p>
+      <p>風險分數：<span id="risk-score"></span></p>
       <p id="health-advice"></p>
     </div>
-    <div style="margin-top:10px;">
-      <p>快速測試：</p>
-      <button class="test-preset" data-sys="115" data-dia="72">正常案例</button>
-      <button class="test-preset" data-sys="140" data-dia="90">高血壓案例</button>
-    </div>
   </div>
 
-  <!-- 最後引入 JavaScript -->
   <script src="script.js"></script>
 </body>
 </html>
