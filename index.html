@@ -34,28 +34,51 @@
   </div>
 
   <!-- 遠端監控 -->
-  <div class="window" id="monitor">
-    <h2>📷 遠端監控</h2>
-    <p>開啟本欄位時，系統會自動嘗試連線至 ESP32-CAM 並顯示即時影像。</p>
-    <div id="camera-container">
-      <img id="esp32-stream" src="" alt="影像載入中..." style="max-width:100%; border-radius:12px;">
-      <p id="cam-status">📡 等待連線...</p>
-    </div>
+<div class="window" id="monitor">
+  <h2>📷 遠端監控</h2>
+  <p>請確認你的 ESP32-CAM 已連線並啟動。</p>
+
+  <div class="monitor-box">
+    <img id="esp32-stream" src="" alt="點擊下方按鈕開始串流">
   </div>
+
+  <button onclick="startStream()">開始影像串流</button>
+</div>
+
 
   <!-- 健康監測 -->
   <div class="window" id="health">
-    <h2>🩺 健康監測</h2>
-    <p>透過藍牙血壓計量測血壓與心率。</p>
-    <button id="bp-connect">🔗 連線血壓計</button>
-    <div id="bp-data">
-      <p>收縮壓 (SYS)：<span id="sys">--</span> mmHg</p>
-      <p>舒張壓 (DIA)：<span id="dia">--</span> mmHg</p>
-      <p>心率 (HR)：<span id="hr">--</span> bpm</p>
+    <h2>🩺 AI 血壓健康分析</h2>
+    <p>利用線性回歸模型，從正常數據中學習，並偵測異常狀況。</p>
+
+    <div class="panel" style="background: #f0f8ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+      <h3>1️⃣ 模型學習 (Training)</h3>
+      <p>系統將匯入 50 筆歷史正常數據，學習血壓與健康指數的線性關係。</p>
+      <button id="train-btn" style="background: #28a745;">📥 匯入 50 筆數據並開始學習</button>
+      <p id="train-status" style="color: #666; font-size: 0.9em; margin-top: 10px;">等待指令...</p>
     </div>
-    <p id="bp-status">尚未連線</p>
+
+    <div class="panel" style="background: #fff3cd; padding: 15px; border-radius: 8px;">
+      <h3>2️⃣ 數據檢測 (Testing)</h3>
+      <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+        <input type="number" id="input-sys" placeholder="收縮壓 (SYS)" style="padding: 10px; width: 45%;">
+        <input type="number" id="input-dia" placeholder="舒張壓 (DIA)" style="padding: 10px; width: 45%;">
+      </div>
+      <button id="predict-btn" disabled style="background: #6c757d; cursor: not-allowed;">🔍 分析健康程度</button>
+      
+      <div style="margin-top: 10px;">
+        <button class="test-preset" data-sys="115" data-dia="75" style="background:#ddd; color:#333; font-size:0.8em;">測試正常 (115/75)</button>
+        <button class="test-preset" data-sys="160" data-dia="100" style="background:#ddd; color:#333; font-size:0.8em;">測試異常 (160/100)</button>
+      </div>
+
+      <hr>
+      <div id="result-area" style="display: none;">
+        <h4>📊 分析結果</h4>
+        <p>預測風險指數：<span id="risk-score" style="font-weight: bold; font-size: 1.2em;">--</span></p>
+        <p>評估結論：<span id="health-advice">--</span></p>
+      </div>
+    </div>
   </div>
 
-  <script src="script.js"></script>
-</body>
-</html>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0/dist/tf.min.js"></script>
+<script src="script.js"></script>
