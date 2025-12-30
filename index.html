@@ -1,24 +1,65 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <title>血壓風險即時分析</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>遠端監控與控制系統</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.4/dist/tesseract.min.js"></script>
+  <script src="script.js" defer></script>
 </head>
 <body>
-  <div class="container">
-    <h2>血壓健康評估系統</h2>
-    <label>收縮壓 SYS: <input id="input-sys" type="number"></label><br>
-    <label>舒張壓 DIA: <input id="input-dia" type="number"></label><br>
-    <label>脈搏 Pulse: <input id="input-pulse" type="number"></label><br>
-    <button id="predict-btn">分析健康狀況</button>
+  <div class="navbar">
+    <button class="tab-btn" data-tab="about">關於我</button>
+    <button class="tab-btn" data-tab="control">遠端控制</button>
+    <button class="tab-btn" data-tab="monitor">遠端監控</button>
+    <button class="tab-btn" data-tab="health">健康監測</button>
+  </div>
 
-    <div id="result-area" style="display:none; margin-top: 20px;">
-      <p>風險分數：<span id="risk-score"></span></p>
-      <p id="health-advice"></p>
+  <div class="window active" id="about">
+    <h2>👤 關於我</h2>
+    <div class="about-photo">
+      <img src="images/me.jpg" alt="我的大頭貼">
+    </div>
+    <p>你好！這是我的個人網站，整合了遠端控制、影像監控與血壓健康檢測等功能。</p>
+    <p>我喜歡物聯網開發、AI 與創意整合應用，致力於將科技融入生活，並創造便利的解決方案。</p>
+  </div>
+
+  <div class="window" id="control">
+    <h2>💡 遠端控制</h2>
+    <button id="ble-connect">🔗 連線 HM-10</button>
+    <button id="light-on">💡 開燈</button>
+    <button id="light-off">🌑 關燈</button>
+    <p id="ble-status">尚未連線</p>
+  </div>
+
+  <div class="window" id="monitor">
+    <h2>📷 遠端監控</h2>
+    <p>請確認 ESP32-CAM 已啟動。</p>
+    <div class="monitor-box">
+      <img id="esp32-stream" src="" alt="請點擊下方按鈕開始串流" />
+    </div>
+    <p id="cam-status">尚未連線</p>
+    <button onclick="startCameraStream()">開始影像串流</button>
+  </div>
+
+  <div class="window" id="health">
+    <h2>🩺 血壓分析</h2>
+    <p>請輸入您的血壓數值進行分析，或上傳血壓儀照片：</p>
+    <div class="panel" style="background: #f0f8ff; padding: 15px; border-radius: 8px;">
+      <input id="input-sys" type="number" placeholder="收縮壓 (SYS)" />
+      <input id="input-dia" type="number" placeholder="舒張壓 (DIA)" />
+      <button id="train-btn">🧠 訓練模型</button>
+      <button id="predict-btn" disabled>🔍 分析</button>
+      <p id="train-status">尚未訓練模型</p>
+      <input type="file" id="bp-upload" accept="image/*" style="margin-top: 10px;" />
+      <p id="ocr-status"></p>
+      <div id="result-area" style="display: none; margin-top: 15px;">
+        <p>風險評估分數：<span id="risk-score"></span></p>
+        <p id="health-advice"></p>
+      </div>
     </div>
   </div>
-  <script src="script.js"></script>
 </body>
 </html>
