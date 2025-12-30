@@ -1,100 +1,91 @@
- (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
-diff --git a/style.css b/style.css
-index 41667a77f39aeb83cdcb49869a1730d713dd4e2b..1c0e7ddf517da302c093c54e369772c325238230 100644
---- a/style.css
-+++ b/style.css
-@@ -45,47 +45,69 @@ body {
-   border-radius: 50%;
-   object-fit: cover;
-   display: block;
-   margin: 10px auto;
-   box-shadow: 0 0 8px rgba(0,0,0,0.3);
- }
- 
- button {
-   margin: 5px;
-   padding: 10px 15px;
-   border: none;
-   border-radius: 8px;
-   background: #0078ff;
-   color: white;
-   cursor: pointer;
- }
- 
- button:hover {
-   background: #005fcc;
- }
- 
- #monitor {
-   text-align: center;
- }
- 
--.monitor-box {
--  width: 100%;
--  max-width: 400px;
--  height: auto;
--  margin: 0 auto 20px;
--}
--
--#esp32-stream {
--  width: 100%;
--  border-radius: 8px;
--  background: #000;
--}
--
--#cam-status {
--  margin-top: 10px;
--  font-weight: bold;
--}
--
--#ble-status {
--  margin-top: 10px;
--  font-weight: bold;
--}
-+.monitor-box {
-+  width: 100%;
-+  max-width: 400px;
-+  height: auto;
-+  margin: 0 auto 20px;
-+}
-+
-+#esp32-stream {
-+  width: 100%;
-+  border-radius: 8px;
-+  background: #000;
-+}
-+
-+#cam-status {
-+  margin-top: 10px;
-+  font-weight: bold;
-+}
-+
-+#ble-status {
-+  margin-top: 10px;
-+  font-weight: bold;
-+}
-+
-+.stream-form {
-+  display: flex;
-+  gap: 8px;
-+  justify-content: center;
-+  margin: 10px 0;
-+}
-+
-+.stream-form input {
-+  flex: 1;
-+  min-width: 220px;
-+  padding: 10px;
-+  border-radius: 8px;
-+  border: 1px solid #ccc;
-+}
-+
-+.note {
-+  font-size: 0.9rem;
-+  color: #666;
-+  text-align: center;
-+  margin: 6px 0 10px 0;
-+}
- 
-EOF
-)
+body {
+  font-family: "Noto Sans TC", sans-serif;
+  background: #f6f6f6;
+  margin: 0;
+}
+
+.navbar {
+  display: flex;
+  background: #1e1e2f;
+  justify-content: center;
+  padding: 10px;
+}
+
+.tab-btn {
+  color: white;
+  background: #333;
+  border: none;
+  padding: 10px 20px;
+  margin: 0 5px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.tab-btn:hover {
+  background: #555;
+}
+
+.window {
+  display: none;
+  padding: 20px;
+  max-width: 600px;
+  margin: 20px auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.window.active {
+  display: block;
+}
+
+.about-photo img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  margin: 10px auto;
+  box-shadow: 0 0 8px rgba(0,0,0,0.3);
+}
+
+button {
+  margin: 5px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  background: #0078ff;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #005fcc;
+}
+
+#monitor {
+  text-align: center;
+}
+
+.monitor-box {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  margin: 0 auto 20px;
+}
+
+#esp32-stream {
+  width: 100%;
+  border-radius: 8px;
+  background: #000;
+}
+
+#cam-status {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+#ble-status {
+  margin-top: 10px;
+  font-weight: bold;
+}
