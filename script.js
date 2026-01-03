@@ -1,24 +1,17 @@
-/* ===============================
-   0) 你必須改的兩個網址（不改會無法送出/辨識）
-================================ */
-const SCRIPT_URL  = "請填入你的_GAS_SCRIPT_URL";
-const NETLIFY_API = "請填入你的_NETLIFY_API_URL"; // 例：https://xxx.netlify.app/.netlify/functions/recognize
-
 document.addEventListener("DOMContentLoaded", () => {
   setupTabs();
-  setupMonitor();
-  setupBloodPressure();
+  setupMonitor();       // 監控頁仍可用（不需網址也能運作，只是串流要你填 ESP32 URL）
+  setupBloodPressure(); // 血壓：改成本機 OCR + 線性回歸判斷（無任何外部 API）
 });
 
 /* ===============================
    1) 分頁切換（.tab-btn -> .window）
 ================================ */
-function setupTabs(){
+function setupTabs() {
   const tabs = document.querySelectorAll(".tab-btn");
   const windows = document.querySelectorAll(".window");
   if (!tabs.length || !windows.length) return;
 
-  // 確保 active tab 與 active window 一致
   const activeWin = [...windows].find(w => w.classList.contains("active")) || windows[0];
   windows.forEach(w => w.classList.toggle("active", w === activeWin));
 
@@ -39,16 +32,17 @@ function setupTabs(){
 
 /* ===============================
    2) ESP32-CAM 串流（可存 URL）
-   需要 index 內存在：
-   #stream-url, #stream-save, #stream-start, #esp32-stream, #cam-status
+   - 不依賴外部服務
+   - 仍需要你輸入 ESP32 的串流網址
 ================================ */
-function setupMonitor(){
+function setupMonitor() {
   const urlInput = document.getElementById("stream-url");
-  const saveBtn  = document.getElementById("stream-save");
+  const saveBtn = document.getElementById("stream-save");
   const startBtn = document.getElementById("stream-start");
-  const img      = document.getElementById("esp32-stream");
-  const status   = document.getElementById("cam-status");
+  const img = document.getElementById("esp32-stream");
+  const status = document.getElementById("cam-status");
 
+  // 若 index 沒有 monitor 元素，直接跳過不報錯
   if (!urlInput || !saveBtn || !startBtn || !img || !status) return;
 
   const saved = localStorage.getItem("esp32StreamUrl") || "";
@@ -72,7 +66,7 @@ function setupMonitor(){
   });
 }
 
-function startCameraStream(url, img, status){
+function startCameraStream(url, img, status) {
   if (!url) {
     status.textContent = "❌ 請先輸入串流網址";
     return;
@@ -81,7 +75,7 @@ function startCameraStream(url, img, status){
   const isHttpsPage = window.location.protocol === "https:";
   const isHttpStream = url.startsWith("http://");
   if (isHttpsPage && isHttpStream) {
-    status.textContent = "⚠️ 本站是 HTTPS，HTTP 串流可能被阻擋（混合內容）。建議改用 HTTPS 或同網段 HTTP 測試。";
+    status.textContent = "⚠️ 本站是 HTTPS，HTTP 串流可能被阻擋（混合內容）。";
   } else {
     status.textContent = "📡 嘗試連線中...";
   }
@@ -89,7 +83,7 @@ function startCameraStream(url, img, status){
   localStorage.setItem("esp32StreamUrl", url);
 
   img.onload = () => status.textContent = "✅ 鏡頭已連線";
-  img.onerror = () => status.textContent = "❌ 鏡頭連線失敗（請確認 URL、ESP32 是否在線）";
+  img.onerror = () => status.textContent = "❌ 鏡頭連線失敗（請確認 URL/ESP32）";
 
   img.src = "";
   setTimeout(() => {
@@ -99,18 +93,18 @@ function startCameraStream(url, img, status){
 }
 
 /* ===============================
-   3) 血壓：上傳預覽 / AI 辨識 / 送出 GAS
-   需要 index 內存在：
-   #photoInput #bp-preview #recognizeBtn #bp-result #sys #dia #pulse #msg
+   3) 血壓：本機 OCR + 線性回歸方程式判斷
+   - 不使用任何網址/外部 API
+   - 需要在 index.html 引入 Tesseract.js CDN
 ================================ */
-function setupBloodPressure(){
-  // 讓 inline HTML 可以叫得到
+function setupBloodPressure() {
+  // 讓 index 的 inline handler 可呼叫
   window.previewImage = previewImage;
-  window.uploadImage  = uploadImage;
-  window.submitData   = submitData;
+  window.uploadImage = uploadImage;   // 這裡改為「本機 OCR 辨識」
+  window.submitData = submitData;     // 這裡改為「本機判斷 +（可選）存 localStorage」
 }
 
-function previewImage(){
+function previewImage() {
   const photoInput = document.getElementById("photoInput");
   const bpPreview = document.getElementById("bp-preview");
   const recognizeBtn = document.getElementById("recognizeBtn");
@@ -124,136 +118,183 @@ function previewImage(){
     bpPreview.src = e.target.result;
     bpPreview.style.display = "block";
     recognizeBtn.style.display = "inline-block";
-    if (bpResult) bpResult.textContent = "已載入照片，請按「開始辨識」。";
+    if (bpResult) bpResult.textContent = "已載入照片，請按「開始辨識」（本機 OCR）。";
   };
   reader.readAsDataURL(file);
 }
 
-async function uploadImage(){
+/**
+ * uploadImage(): 改為「本機 OCR」辨識
+ */
+async function uploadImage() {
   const photoInput = document.getElementById("photoInput");
   const bpResult = document.getElementById("bp-result");
   const recognizeBtn = document.getElementById("recognizeBtn");
 
+  const sysEl = document.getElementById("sys");
+  const diaEl = document.getElementById("dia");
+
   const file = photoInput?.files?.[0];
   if (!file || !bpResult) return;
 
-  if (!NETLIFY_API || NETLIFY_API.includes("請填入")) {
-    bpResult.textContent = "⚠️ 尚未設定 NETLIFY_API，請先在 script.js 填入你的網址。";
+  if (typeof Tesseract === "undefined") {
+    bpResult.textContent = "❌ 找不到 Tesseract.js。請確認 index.html 已加入 Tesseract CDN。";
     return;
   }
 
   recognizeBtn && (recognizeBtn.disabled = true);
-  bpResult.textContent = "⏳ 辨識中...";
+  bpResult.textContent = "⏳ 本機 OCR 辨識中（可能需要幾秒）...";
 
   try {
-    const base64 = await fileToBase64(file);
-
-    const res = await fetch(NETLIFY_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ image: base64, mimeType: file.type })
+    const { data } = await Tesseract.recognize(file, "eng", {
+      logger: (m) => {
+        // 你想看進度可打開下一行
+        // console.log(m);
+      }
     });
 
-    if (!res.ok) throw new Error("辨識服務回應失敗：" + res.status);
-
-    const data = await res.json();
-    const text = (data?.text ?? "").toString().trim();
-
+    const text = (data?.text || "").trim();
     if (!text) {
-      bpResult.textContent = "❌ 辨識無結果，請換清晰照片或改手動輸入。";
+      bpResult.textContent = "❌ 沒讀到文字，請換清晰照片或手動輸入。";
       return;
     }
 
-    bpResult.textContent = "辨識結果：" + text;
-
-    // 自動填入（預期 120/80）
+    // 嘗試抓取 120/80 或兩個數字
     const extracted = extractSysDia(text);
-    if (extracted) {
-      const sysEl = document.getElementById("sys");
-      const diaEl = document.getElementById("dia");
-      if (sysEl) sysEl.value = extracted.sys;
-      if (diaEl) diaEl.value = extracted.dia;
+    if (!extracted) {
+      bpResult.textContent = "⚠️ OCR 有讀到文字，但未能解析 SYS/DIA。請手動輸入。\n\nOCR 文字：\n" + text;
+      return;
     }
+
+    if (sysEl) sysEl.value = extracted.sys;
+    if (diaEl) diaEl.value = extracted.dia;
+
+    bpResult.textContent = `✅ 辨識完成：${extracted.sys}/${extracted.dia}\n（你可直接按「送出資料」做本機判斷）`;
+
   } catch (err) {
     console.error(err);
-    bpResult.textContent = "❌ 辨識失敗，請手動輸入。";
+    bpResult.textContent = "❌ OCR 辨識失敗，請手動輸入。";
   } finally {
     recognizeBtn && (recognizeBtn.disabled = false);
   }
 }
 
-async function submitData(){
+/**
+ * submitData(): 改為「本機判斷」
+ * - 用線性回歸方程式做健康判斷
+ * - 可選：把紀錄存 localStorage（不用後端）
+ */
+function submitData() {
   const msg = document.getElementById("msg");
-  const sys = document.getElementById("sys")?.value?.trim();
-  const dia = document.getElementById("dia")?.value?.trim();
-  const pulse = document.getElementById("pulse")?.value?.trim();
+
+  const sys = toNumber(document.getElementById("sys")?.value);
+  const dia = toNumber(document.getElementById("dia")?.value);
+  const pulse = toNumber(document.getElementById("pulse")?.value);
 
   if (!sys || !dia) {
     alert("請填寫收縮壓（SYS）與舒張壓（DIA）。");
     return;
   }
 
-  if (!SCRIPT_URL || SCRIPT_URL.includes("請填入")) {
-    msg && (msg.textContent = "⚠️ 尚未設定 SCRIPT_URL，請先在 script.js 填入你的 GAS Web App 網址。");
-    return;
+  const result = evaluateByLinearRegression(sys, dia);
+
+  const advice = buildAdvice(sys, dia, pulse, result);
+
+  if (msg) {
+    msg.textContent =
+      `判斷結果：${result.isHealthy ? "✅ 較正常" : "⚠️ 需注意"}\n` +
+      `分數：${result.score.toFixed(3)}（閾值：${result.threshold}）\n` +
+      `說明：${result.note}\n\n` +
+      `建議：\n${advice}`;
   }
 
-  if (msg) msg.textContent = "⏳ 資料上傳中...";
+  // 可選：存到 localStorage（不用後端）
+  saveBpRecord({ sys, dia, pulse, ...result, time: new Date().toISOString() });
+}
 
+/* ===============================
+   線性回歸方程式（你提供的）
+   abs(sys - (dia * -0.3738 + 163.8)) > 11.943303
+================================ */
+function evaluateByLinearRegression(sys, dia) {
+  const threshold = 11.943303;
+  const predictedSys = (dia * -0.3738 + 163.8);
+  const score = Math.abs(sys - predictedSys);
+
+  const isHealthy = score <= threshold;
+  return {
+    threshold,
+    predictedSys,
+    score,
+    isHealthy,
+    note: isHealthy
+      ? "SYS 與 DIA 的關係落在模型允許範圍內。"
+      : "SYS 與 DIA 的關係偏離模型範圍，建議再量測或留意生活型態。"
+  };
+}
+
+/* ===============================
+   建議（簡單、實用）
+================================ */
+function buildAdvice(sys, dia, pulse, lrResult) {
+  const lines = [];
+
+  // 依你的線性回歸判斷
+  if (!lrResult.isHealthy) {
+    lines.push("1) 建議在 5 分鐘安靜休息後重新量測 1–2 次，取平均值。");
+    lines.push("2) 減少高鈉飲食（鹽、醃漬、湯品）、增加蔬果與水分。");
+    lines.push("3) 規律運動（每週至少 150 分鐘中等強度），避免熬夜與過量咖啡因。");
+    lines.push("4) 若多次量測仍偏離或伴隨不適（頭暈、胸悶），建議就醫評估。");
+  } else {
+    lines.push("1) 維持規律作息與運動習慣。");
+    lines.push("2) 飲食少油少鹽，多蔬果。");
+    lines.push("3) 建議每週固定時間紀錄，觀察趨勢。");
+  }
+
+  // 參考一般血壓區間（非醫療診斷，只做提醒）
+  if (sys >= 140 || dia >= 90) {
+    lines.push("※ 提醒：你輸入的血壓數值偏高區間（僅提醒，非診斷），建議與醫師討論。");
+  } else if (sys >= 130 || dia >= 80) {
+    lines.push("※ 提醒：可能接近偏高區間，請留意飲食與運動。");
+  }
+
+  if (pulse && pulse >= 100) {
+    lines.push("※ 心跳偏快：若在休息狀態仍偏快，建議觀察與諮詢專業。");
+  }
+
+  return lines.join("\n");
+}
+
+/* ===============================
+   localStorage 紀錄（可選）
+================================ */
+function saveBpRecord(record) {
   try {
-    const response = await fetch(SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sys, dia, pulse })
-    });
-
-    const text = await response.text();
-    if (!text) {
-      if (msg) msg.textContent = "⚠️ 已送出，但未讀到回傳內容。若試算表有新增資料，通常代表成功。";
-      return;
-    }
-
-    let result;
-    try {
-      result = JSON.parse(text);
-    } catch {
-      if (msg) msg.textContent = "⚠️ 已送出，但回傳格式非 JSON。請確認試算表是否有新增資料。";
-      return;
-    }
-
-    if (result.result === "ok") {
-      if (msg) msg.textContent = "✅ 已成功存入！判斷結果：" + (result.status || "完成");
-      clearBpForm();
-    } else {
-      if (msg) msg.textContent = "❌ 存入失敗：" + (result.message || "未知錯誤");
-    }
-  } catch (error) {
-    console.error("提交錯誤:", error);
-    if (msg) msg.textContent = "⚠️ 資料已嘗試送出，但可能因 CORS 無法讀取回傳。請檢查試算表是否有新增資料。";
+    const key = "bpRecords";
+    const arr = JSON.parse(localStorage.getItem(key) || "[]");
+    arr.unshift(record);
+    // 只保留最近 50 筆，避免無限長
+    localStorage.setItem(key, JSON.stringify(arr.slice(0, 50)));
+  } catch (e) {
+    console.warn("localStorage 儲存失敗：", e);
   }
 }
 
-function clearBpForm(){
-  ["sys","dia","pulse"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = "";
-  });
+/* ===============================
+   工具函式
+================================ */
+function toNumber(v) {
+  const n = Number(String(v || "").trim());
+  return Number.isFinite(n) ? n : 0;
 }
 
-function fileToBase64(file){
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result).split(",")[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-function extractSysDia(text){
+// 解析 120/80、120 / 80、或抓前兩個 2~3 位數字
+function extractSysDia(text) {
   const m = text.match(/(\d{2,3})\s*\/\s*(\d{2,3})/);
   if (m) return { sys: m[1], dia: m[2] };
 
   const nums = (text.match(/\d{2,3}/g) || []).map(s => s.trim());
   if (nums.length >= 2) return { sys: nums[0], dia: nums[1] };
+
   return null;
 }
