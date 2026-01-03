@@ -1,7 +1,7 @@
 /* ===============================
    0) 你必須改的兩個網址（不改會無法送出/辨識）
 ================================ */
-const SCRIPT_URL  = "請填入你的_GAS_SCRIPT_URL"; 
+const SCRIPT_URL  = "請填入你的_GAS_SCRIPT_URL";
 const NETLIFY_API = "請填入你的_NETLIFY_API_URL"; // 例：https://xxx.netlify.app/.netlify/functions/recognize
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -16,21 +16,15 @@ document.addEventListener("DOMContentLoaded", () => {
 function setupTabs(){
   const tabs = document.querySelectorAll(".tab-btn");
   const windows = document.querySelectorAll(".window");
-
   if (!tabs.length || !windows.length) return;
 
-  // 預設啟用第一個 tab（若 HTML 沒有先加 active）
-  if (![...windows].some(w => w.classList.contains("active"))) {
-    windows[0].classList.add("active");
-    tabs[0]?.classList.add("active");
-  } else {
-    // 若 window 已 active，對應的 tab 也補上 active
-    const activeWin = [...windows].find(w => w.classList.contains("active"));
-    if (activeWin) {
-      const t = [...tabs].find(x => x.dataset.tab === activeWin.id);
-      t?.classList.add("active");
-    }
-  }
+  // 確保 active tab 與 active window 一致
+  const activeWin = [...windows].find(w => w.classList.contains("active")) || windows[0];
+  windows.forEach(w => w.classList.toggle("active", w === activeWin));
+
+  const matchTab = [...tabs].find(t => t.dataset.tab === activeWin.id) || tabs[0];
+  tabs.forEach(t => t.classList.remove("active"));
+  matchTab.classList.add("active");
 
   tabs.forEach(tab => {
     tab.addEventListener("click", () => {
@@ -55,10 +49,8 @@ function setupMonitor(){
   const img      = document.getElementById("esp32-stream");
   const status   = document.getElementById("cam-status");
 
-  // 如果你的 index 沒有遠端監控區塊，直接跳過不報錯
   if (!urlInput || !saveBtn || !startBtn || !img || !status) return;
 
-  // 還原上次儲存
   const saved = localStorage.getItem("esp32StreamUrl") || "";
   if (saved) {
     urlInput.value = saved;
@@ -86,11 +78,10 @@ function startCameraStream(url, img, status){
     return;
   }
 
-  // HTTPS 混合內容提醒
   const isHttpsPage = window.location.protocol === "https:";
   const isHttpStream = url.startsWith("http://");
   if (isHttpsPage && isHttpStream) {
-    status.textContent = "⚠️ 本站是 HTTPS，HTTP 串流可能被瀏覽器阻擋（混合內容）。建議改用 HTTPS 或同網段 HTTP 測試。";
+    status.textContent = "⚠️ 本站是 HTTPS，HTTP 串流可能被阻擋（混合內容）。建議改用 HTTPS 或同網段 HTTP 測試。";
   } else {
     status.textContent = "📡 嘗試連線中...";
   }
@@ -100,7 +91,6 @@ function startCameraStream(url, img, status){
   img.onload = () => status.textContent = "✅ 鏡頭已連線";
   img.onerror = () => status.textContent = "❌ 鏡頭連線失敗（請確認 URL、ESP32 是否在線）";
 
-  // 清空再載入（避免快取）
   img.src = "";
   setTimeout(() => {
     const bust = (url.includes("?") ? "&" : "?") + "t=" + Date.now();
@@ -208,10 +198,7 @@ async function submitData(){
     return;
   }
 
-  if (msg) {
-    msg.style.color = "";
-    msg.textContent = "⏳ 資料上傳中...";
-  }
+  if (msg) msg.textContent = "⏳ 資料上傳中...";
 
   try {
     const response = await fetch(SCRIPT_URL, {
@@ -220,7 +207,6 @@ async function submitData(){
       body: JSON.stringify({ sys, dia, pulse })
     });
 
-    // GAS 有時回傳不是 JSON（或被 CORS 擋），用 text 比較穩
     const text = await response.text();
     if (!text) {
       if (msg) msg.textContent = "⚠️ 已送出，但未讀到回傳內容。若試算表有新增資料，通常代表成功。";
@@ -248,8 +234,7 @@ async function submitData(){
 }
 
 function clearBpForm(){
-  const ids = ["sys","dia","pulse"];
-  ids.forEach(id => {
+  ["sys","dia","pulse"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = "";
   });
@@ -265,11 +250,9 @@ function fileToBase64(file){
 }
 
 function extractSysDia(text){
-  // 120/80
   const m = text.match(/(\d{2,3})\s*\/\s*(\d{2,3})/);
   if (m) return { sys: m[1], dia: m[2] };
 
-  // fallback：抓前兩個 2~3 位數字
   const nums = (text.match(/\d{2,3}/g) || []).map(s => s.trim());
   if (nums.length >= 2) return { sys: nums[0], dia: nums[1] };
   return null;

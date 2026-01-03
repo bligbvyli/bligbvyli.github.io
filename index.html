@@ -1,84 +1,134 @@
- (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
-diff --git a/index.html b/index.html
-index a560cd1068b257e22c73f461820bf7757b0fc472..291d4ab9f8d5dc2d9e06f2e55741c3c8a4ef02f2 100644
---- a/index.html
-+++ b/index.html
-@@ -12,54 +12,59 @@
- <body>
-   <div class="navbar">
-     <button class="tab-btn" data-tab="about">關於我</button>
-     <button class="tab-btn" data-tab="control">遠端控制</button>
-     <button class="tab-btn" data-tab="monitor">遠端監控</button>
-     <button class="tab-btn" data-tab="health">健康監測</button>
-   </div>
- 
-   <div class="window active" id="about">
-     <h2>👤 關於我</h2>
-     <div class="about-photo">
-       <img src="images/me.jpg" alt="我的大頭貼">
-     </div>
-     <p>你好！這是我的個人網站，整合了遠端控制、影像監控與血壓健康檢測等功能。</p>
-     <p>我喜歡物聯網開發、AI 與創意整合應用，致力於將科技融入生活，並創造便利的解決方案。</p>
-   </div>
- 
-  
- 
--  <div class="window" id="monitor">
--    <h2>📷 遠端監控</h2>
--    <p>請確認 ESP32-CAM 已啟動。</p>
--    <div class="monitor-box">
--      <img id="esp32-stream" src="" alt="請點擊下方按鈕開始串流" />
--    </div>
--    <p id="cam-status">尚未連線</p>
--    <button onclick="startCameraStream()">開始影像串流</button>
--  </div>
-+  <div class="window" id="monitor">
-+    <h2>📷 遠端監控</h2>
-+    <p>請確認 ESP32-CAM 已啟動，並輸入串流 URL（例如 <code>http://192.168.1.50:81/stream</code>）。</p>
-+    <div class="stream-form">
-+      <input id="stream-url" type="text" placeholder="http://<ESP32-IP>:<PORT>/stream" />
-+      <button id="stream-save">儲存串流網址</button>
-+    </div>
-+    <p class="note">若本站是 HTTPS，請確保串流 URL 也為 HTTPS，否則瀏覽器會阻擋混合內容。</p>
-+    <div class="monitor-box">
-+      <img id="esp32-stream" src="" alt="請點擊下方按鈕開始串流" />
-+    </div>
-+    <p id="cam-status">尚未連線</p>
-+    <button id="stream-start">開始影像串流</button>
-+  </div>
- 
-   <!-- 血壓量測 -->
-  <div id="section2" class="section">
-    <div class="container">
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>我的個人網站</title>
 
-      <h2>血壓量測辨識</h2>
-      <p>請上傳照片自動辨識，或手動輸入數據後存入雲端表格。</p>
+  <!-- GitHub Pages：同層檔案直接引用 -->
+  <link rel="stylesheet" href="style.css" />
+  <script src="script.js" defer></script>
+</head>
 
-      <div style="margin-bottom:20px;">
-        <input type="file" id="photoInput" accept="image/*" onchange="previewImage()">
-        <br><br>
-        <img id="bp-preview" style="max-width:300px; display:none; border-radius:8px; border:1px solid #ccc;">
-      </div>
-
-      <button id="recognizeBtn" onclick="uploadImage()" style="display:none; padding:10px 20px;">
-        開始辨識
-      </button>
-
-      <div id="bp-result" style="margin:15px 0; font-weight:bold; color:blue;"></div>
-
-      <hr>
-
-      <div style="display:flex; flex-direction:column; gap:10px; max-width:300px;">
-        <p>方程式:abs(收縮壓 - (舒張壓 *-0.3738 + 163.8) )>11.943303</p>
-        <label>收縮壓 (SYS): <input id="sys" type="number"></label>
-        <label>舒張壓 (DIA): <input id="dia" type="number"></label>
-        <label>心跳 (Pulse): <input id="pulse" type="number"></label>
-        <button onclick="submitData()" style="padding:10px; background:#008cba; color:white; border:none; cursor:pointer;">
-          送出資料
-        </button>
-      </div>
-
-      <p id="msg" style="margin-top:15px; font-weight:bold;"></p>
-
-    </div>
+<body>
+  <div class="navbar">
+    <button class="tab-btn active" data-tab="about">關於我</button>
+    <button class="tab-btn" data-tab="control">遠端控制</button>
+    <button class="tab-btn" data-tab="monitor">遠端監控</button>
+    <button class="tab-btn" data-tab="health">健康監測</button>
   </div>
+
+  <!-- 關於我 -->
+  <section class="window active" id="about">
+    <h2>👤 關於我</h2>
+
+    <div class="about-photo">
+      <!-- 請把你的照片放在：images/me.jpg -->
+      <img src="images/me.jpg" alt="我的大頭貼" />
+    </div>
+
+    <p>你好！這是我的個人網站，整合了遠端控制、影像監控與血壓健康檢測等功能。</p>
+    <p>我喜歡戶外運動與閱讀，也喜歡把物聯網與 AI 應用整合到生活中，讓日常更方便。</p>
+
+    <p class="small">
+      若圖片無法顯示：請確認 GitHub 專案內有 <code>images/me.jpg</code>，檔名大小寫需一致。
+    </p>
+  </section>
+
+  <!-- 遠端控制（你可自行擴充） -->
+  <section class="window" id="control">
+    <h2>🔌 遠端控制</h2>
+    <p>你可以在這裡放置家電控制頁面的連結或控制介面。</p>
+    <p>例如：<a href="3.html" target="_blank" rel="noopener">前往家電控制頁面（3.html）</a></p>
+
+    <p class="small">
+      提醒：若 GitHub Pages 找不到 3.html，請確認它在 repo 根目錄，且檔名大小寫正確。
+    </p>
+  </section>
+
+  <!-- 遠端監控 -->
+  <section class="window" id="monitor">
+    <h2>📷 遠端監控</h2>
+    <p>請確認 ESP32-CAM 已啟動，並輸入串流 URL（例如 <code>http://192.168.1.50:81/stream</code>）。</p>
+
+    <div class="stream-form">
+      <input id="stream-url" type="text" placeholder="http://<ESP32-IP>:<PORT>/stream" />
+      <button id="stream-save" type="button">儲存串流網址</button>
+    </div>
+
+    <p class="note">若本站是 HTTPS，HTTP 串流可能會被瀏覽器阻擋（混合內容）。</p>
+
+    <div class="monitor-box">
+      <img id="esp32-stream" src="" alt="請點擊下方按鈕開始串流" />
+    </div>
+
+    <p id="cam-status">尚未連線</p>
+    <button id="stream-start" type="button">開始影像串流</button>
+  </section>
+
+  <!-- 健康監測（血壓） -->
+  <section class="window" id="health">
+    <h2>🩺 血壓量測辨識</h2>
+    <p>上傳血壓機螢幕照片進行辨識，或手動輸入後存入雲端表格。</p>
+
+    <div class="bp-wrap">
+      <!-- 左：上傳與辨識 -->
+      <div class="bp-card">
+        <h3 style="margin:0 0 8px;">上傳照片與辨識</h3>
+
+        <input type="file" id="photoInput" accept="image/*" onchange="previewImage()" />
+
+        <img id="bp-preview" alt="血壓照片預覽" />
+
+        <div style="margin-top:10px;">
+          <button id="recognizeBtn" onclick="uploadImage()" style="display:none;" type="button">
+            開始辨識
+          </button>
+        </div>
+
+        <div id="bp-result">尚未辨識。</div>
+
+        <hr />
+        <p class="small">
+          建議：照片請正面、清晰、光線充足，可大幅提升辨識成功率。
+        </p>
+      </div>
+
+      <!-- 右：手動輸入與送出 -->
+      <div class="bp-card">
+        <h3 style="margin:0 0 8px;">手動輸入與送出</h3>
+
+        <p class="small">
+          方程式示意：<code>abs(SYS - (DIA * -0.3738 + 163.8)) &gt; 11.943303</code>
+        </p>
+
+        <div class="bp-fields">
+          <label>
+            收縮壓 (SYS)
+            <input id="sys" type="number" inputmode="numeric" placeholder="例如：120" />
+          </label>
+
+          <label>
+            舒張壓 (DIA)
+            <input id="dia" type="number" inputmode="numeric" placeholder="例如：80" />
+          </label>
+
+          <label>
+            心跳 (Pulse)
+            <input id="pulse" type="number" inputmode="numeric" placeholder="例如：72" />
+          </label>
+
+          <button onclick="submitData()" type="button">送出資料</button>
+        </div>
+
+        <div id="msg">等待操作。</div>
+
+        <p class="small">
+          若出現「已送出但無法讀取回傳」：通常是 CORS 限制，但資料仍可能已寫入 Sheet。
+        </p>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>
